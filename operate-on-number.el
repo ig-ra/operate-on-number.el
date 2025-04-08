@@ -203,7 +203,7 @@ Return nil if no number is found."
               (nbeg (match-end 2)))
           (vector 10 beg sbeg nbeg end end)))))))
 
-(defun oon--format-number (abs base sample)
+(defun oon--format-abs-number (abs base sample)
   "Format an absolute number ABS in BASE like SAMPLE."
   (let ((str
          (if (= base 10)
@@ -222,7 +222,7 @@ Return nil if no number is found."
            str))))
 
 (defun oon--parsed-number (parsed)
-  "Parse a vector PARSED into a number it represents."
+  "Parse a vector PARSED with a buffer data into a number it represents."
   (let* ((base (elt parsed 0))
          (spos (elt parsed 2))
          (nbeg (elt parsed 3))
