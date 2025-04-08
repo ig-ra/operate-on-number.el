@@ -386,7 +386,7 @@ For possible keys of PLIST, see `operate-on-number-at-point-alist'."
     (oon--replace-number parsed result)))
 
 ;;;###autoload
-(defun apply-operation-to-number-at-point (&optional key read-args)
+(defun apply-operation-to-number-at-point (&optional key &rest args)
   "Apply an operation specified by KEY on a number at point.
 
 If called interactively, use the last key input as KEY.
@@ -418,13 +418,15 @@ one of the following sources in the order named:
          (func (nth 1 oargs))
          (plist (nthcdr 2 oargs))
          (display (or (plist-get plist :display) (string key)))
+         (should-read (if args
+                          (car args)
+                        (plist-get plist :read)))
          (args (cond ((null defargs)
                       nil)
                      ((and (numberp defarg)
                            arg)
                       (list arg))
-                     ((or read-args
-                          (plist-get plist :read))
+                     (should-read
                       (let* ((prompt (format "Insert %s %s " formatted display))
                              (input (if (numberp defarg)
                                         (read-number prompt defarg)
