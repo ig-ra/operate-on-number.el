@@ -243,11 +243,6 @@ Return nil if no number is found."
         (concat ssign str)
       (concat ssign (format "%d#" base) str (format " (%s)" num)))))
 
-(defun oon--replace-number (parsed number)
-  "Replace a number specified by PARSED with NUMBER."
-  (let* ((base (elt parsed 0))
-         (beg  (elt parsed 1))
-         (spos (elt parsed 2))
 (defun oon--get-base-from-prefix (str)
   "Return base (16, 8, 2) if STR starts with respective prefix, 10 otherwise."
   (if (and str (string-match "\\`0[xXoObB]" str))
@@ -256,24 +251,44 @@ Return nil if no number is found."
       (?o 8)
       (?b 2))
     10))
+
+(defun oon--replace-and-format (parsed result &optional base)
+  (let* ((old_base (elt parsed 0))
+         (base (if (stringp result) (oon--get-base-from-prefix result) old_base))
+         (beg (elt parsed 1))
          (nbeg (elt parsed 3))
+         (replace-from-pt (if (stringp result) beg nbeg))
          (nend (elt parsed 4))
-         (str (buffer-substring-no-properties nbeg nend))
-         (abs (abs number))
-         (sign (if (>= number 0) ?+ ?-)))
-    (if (and (null spos)
-             (= sign ?-))
-        (error "cannot replace with a negative number!"))
-    (goto-char nbeg)
-    (delete-region nbeg nend)
-    (insert (oon--format-number abs base str))
-    (if spos
-        (save-excursion
-          (goto-char spos)
-          (if (or (when (looking-at "[+-]")
-                    (delete-char 1) t)
-                  (= sign ?-))
-              (insert-char sign))))))
+         (old-str-no-base (buffer-substring-no-properties nbeg nend))
+         (new-str
+          (if (stringp result)
+              result ;; FIXME: padding
+            (oon--format-abs-number result base old-str-no-base))))
+    (goto-char replace-from-pt)
+    (delete-region replace-from-pt nend)
+    (insert new-str)))
+
+(defun oon--replace-number (parsed result)
+  "Replace a number specified by PARSED with RESULT."
+  ;; distinguish between format and aithmetic op.
+  (if (stringp result) ;; appplied op was formatting (%s, %x etc)
+      (oon--replace-and-format parsed result)
+
+    ;; arithmetic op
+    (let ((spos (elt parsed 2))
+          (abs (abs result))
+          (sign (if (>= result 0) ?+ ?-)))
+      (if (and (null spos)
+               (= sign ?-))
+          (error "cannot replace with a negative number!"))
+      (oon--replace-and-format parsed abs)
+      (if spos
+          (save-excursion
+            (goto-char spos)
+            (if (or (when (looking-at "[+-]")
+                      (delete-char 1) t)
+                    (= sign ?-))
+                (insert-char sign)))))))
 
 ;;;###autoload
 (defun find-number-at-point ()
