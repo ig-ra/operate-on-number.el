@@ -61,6 +61,9 @@
 ;;     (">"  apply-operation-to-number-at-point)
 ;;     ("#"  apply-operation-to-number-at-point)
 ;;     ("%"  apply-operation-to-number-at-point)
+;;     ("x"  apply-operation-to-number-at-point)
+;;     ("d"  apply-operation-to-number-at-point)
+;;     ("b"  apply-operation-to-number-at-point)
 ;;     ("'"  operate-on-number-at-point)
 ;;     ("C-u" operate-on-number-read-operand)
 ;;     ("<return>" nil)
@@ -77,6 +80,9 @@
 ;;       (">" . apply-operation-to-number-at-point)
 ;;       ("#" . apply-operation-to-number-at-point)
 ;;       ("%" . apply-operation-to-number-at-point)
+;;       ("x" .  apply-operation-to-number-at-point)
+;;       ("d" . apply-operation-to-number-at-point)
+;;       ("b" . apply-operation-to-number-at-point)
 ;;       ("'" . operate-on-number-at-point)
 ;;       ("C-u" . operate-on-number-read-operand)))
 ;;
@@ -289,10 +295,11 @@ and return the value.  Raise an error otherwise."
         :display "<<")
     (?> (1) (lambda (a b) (ash a (- b)))
         :display ">>")
-    (?b () math-format-binary)
-    (?o () (lambda (a) (format "%o" a)))
-    (?x () (lambda (a) (format "%x" a)))
-    (?X () (lambda (a) (format "%X" a)))
+    (?b () (lambda (a) (format "0b%s" (math-format-binary a))))
+    (?o () (lambda (a) (format "0o%o" a)))
+    (?x () (lambda (a) (format "%#x" a)))
+    (?X () (lambda (a) (format "%#X" a)))
+    (?d () (lambda (a) (format "%d" a)))
     (?# (10) (lambda (a b)
                (let ((calc-number-radix b))
                  (math-format-radix a)))
@@ -310,7 +317,8 @@ DEFARGS is a list of default arguments, which length is taken as
 the number of additional operands required for the operation.
 Currently this length must be zero or one.
 
-FUNC is a function for the operation.
+FUNC is a function for the operation, either arithmetic(add, mul, shift, etc)
+or format (%s, %X, %o, etc) one.
 
 After that comes an optional inline property list in which the
 following keys are available:
